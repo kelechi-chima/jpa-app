@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import java.util.List;
 
 public class App {
 
@@ -38,7 +39,10 @@ public class App {
 
             entityManager.getTransaction().begin();
 
+            List allLimitedClients = entityManager.createNamedQuery(LimitedClient.ALL_LIMITED_CLIENTS).getResultList();
+            assert allLimitedClients != null;
 
+            entityManager.getTransaction().setRollbackOnly();
         } catch (Exception e) {
             LOGGER.error("Something's amiss!", e);
         } finally {
