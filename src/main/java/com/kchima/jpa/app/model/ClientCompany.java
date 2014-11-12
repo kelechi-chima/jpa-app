@@ -1,6 +1,7 @@
 package com.kchima.jpa.app.model;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -62,6 +63,9 @@ public class ClientCompany {
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this).append(id).append(incorporationDate).append(tradingStartDate).append(tradingEndDate).append(client).build();
+        return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE).
+                append("id", id).append("incorporation date", incorporationDate).
+                append("trading start date", tradingStartDate).
+                append("trading end date", tradingEndDate).append(client).build();
     }
 }
