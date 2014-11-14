@@ -12,7 +12,7 @@ public class LimitedClient extends Client {
 
     private ClientCompany clientCompany;
 
-    @OneToOne(mappedBy = "client", cascade = CascadeType.PERSIST)
+    @OneToOne(mappedBy = "client", cascade = CascadeType.ALL)
     @Override
     public ClientCompany getClientCompany() {
         return clientCompany;

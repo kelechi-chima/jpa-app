@@ -8,9 +8,8 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
+import javax.persistence.*;
+import javax.persistence.criteria.CriteriaQuery;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -78,6 +77,35 @@ public class ClientDaoTest {
         assertEquals(CLIENT_NAME_ONE, clientNames.get(0));
     }
 
+    @Test
+    public void getClientsWithPhones() {
+        entityManager.getTransaction().begin();
+
+        TypedQuery<Client> query = entityManager.createQuery("SELECT c FROM Client c WHERE c.name = :name", Client.class);
+        query.setParameter("name", CLIENT_NAME_ONE);
+        Client client = query.getSingleResult();
+
+        Phone phone = new Phone();
+        phone.setNumber("01273200100");
+        phone.setType("Landline");
+        phone.setClient(client);
+        client.setPhones(Arrays.asList(phone));
+
+        entityManager.persist(client);
+        entityManager.flush();
+        entityManager.getTransaction().commit();
+
+        entityManager.getTransaction().begin();
+        @SuppressWarnings("unchecked")
+        List<Phone> phones = entityManager.createQuery("SELECT p FROM Phone p").getResultList();
+        LOGGER.info("retrieved phones: {}", phones);
+        entityManager.getTransaction().rollback();
+
+        List<Client> clients = new ClientDao(entityManager).findClientsWithPhones();
+        assertEquals(1, clients.size());
+        assertEquals(CLIENT_NAME_ONE, clients.get(0).getName());
+    }
+
     private Client getLimitedClient(String name) {
         LimitedClient client = new LimitedClient();
         client.setName(name);
@@ -125,29 +153,13 @@ public class ClientDaoTest {
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }
+
+            Client client = new ClientDao(entityManager).findClientByName(clientName);
             entityManager.getTransaction().begin();
-
-            int rows = entityManager.createQuery("DELETE FROM PurchaseInvoice p WHERE p.client IN " +
-                    "(SELECT c FROM Client c WHERE c.name = :name)").
-                    setParameter("name", clientName).
-                    executeUpdate();
-
-            LOGGER.info("{} purchase invoice(s) deleted", rows);
-
-            rows = entityManager.createQuery("DELETE FROM ClientCompany cc WHERE cc.client IN " +
-                    "(SELECT c FROM Client c WHERE c.name = :name)").
-                    setParameter("name", clientName).
-                    executeUpdate();
-
-            LOGGER.info("{} client company deleted", rows);
-
-            rows = entityManager.createQuery("DELETE FROM Client c WHERE c.name = :name").
-                    setParameter("name", clientName).
-                    executeUpdate();
-
-            LOGGER.info("{} client(s) deleted", rows);
-
+            entityManager.remove(client);
             entityManager.getTransaction().commit();
+
+            LOGGER.info("deleted client with name {}", clientName);
         }
     }
 }

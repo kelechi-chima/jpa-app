@@ -9,16 +9,19 @@ import java.util.List;
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @NamedQueries({
-        @NamedQuery(name = Client.ALL_CLIENTS, query = "SELECT c FROM Client c")
+        @NamedQuery(name = Client.ALL_CLIENTS, query = "SELECT c FROM Client c"),
+        @NamedQuery(name = Client.CLIENT_BY_NAME, query = "SELECT c FROM Client c WHERE c.name = :name")
 })
 public abstract class Client {
 
     public static final String ALL_CLIENTS = "allClients";
+    public static final String CLIENT_BY_NAME = "clientByName";
 
     private Long id;
     private String name;
     private Address address;
     private List<PurchaseInvoice> purchaseInvoices;
+    private List<Phone> phones;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -52,7 +55,7 @@ public abstract class Client {
         this.address = address;
     }
 
-    @OneToMany(mappedBy = "client", cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
     public List<PurchaseInvoice> getPurchaseInvoices() {
         return purchaseInvoices;
     }
@@ -61,9 +64,18 @@ public abstract class Client {
         this.purchaseInvoices = purchaseInvoices;
     }
 
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
+    public List<Phone> getPhones() {
+        return phones;
+    }
+
+    public void setPhones(List<Phone> phones) {
+        this.phones = phones;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE).
-                append("id", id).append("name", name).build();
+                append("id", getId()).append("name", getName()).build();
     }
 }
